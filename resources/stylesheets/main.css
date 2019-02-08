@@ -1,0 +1,26 @@
+.App {
+  text-align: center;
+}
+
+.board {
+  display: inline-block;
+  border: 10px solid black;
+}
+
+.row {
+  display: flex;
+  flex-grow: 0;
+}
+
+.block {
+  width: 10px;
+  height: 10px;
+}
+
+.block--has-snake {
+  background: black;
+}
+
+.block--has-apple {
+  background: red;
+}
