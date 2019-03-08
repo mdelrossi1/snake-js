@@ -1,5 +1,7 @@
 # JS Snake
 
+The classic game of [snake](https://en.wikipedia.org/wiki/Snake_(video_game_genre)) created with vanilla JS.
+
 ## To play
 - a basic server is needed because of CORS issues. I used a global instance of [npm-serve](https://www.npmjs.com/package/serve)
 - Latest version of Chrome was used to play.  No cross browser testing was conducted.
