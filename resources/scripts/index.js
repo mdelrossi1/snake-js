@@ -5,7 +5,6 @@ import {
   APPLE_CLASS,
   BOARD_SIZE,
   SNAKE_LENGTH,
-  SNAKE_LENGTH_ATTRIBUTE,
   STARTING_DIRECTION,
   STARTING_POSITION,
   SNAKE_CLASS
@@ -16,8 +15,11 @@ import { createBoard, getRandomCoordinate } from './utilities.js';
 let app = null,
     board = null,
     direction = Object.assign({}, STARTING_DIRECTION),
-    snakeLength = SNAKE_LENGTH,
-    snakePosition = Object.assign({}, STARTING_POSITION),
+    snake = {
+      head: {},
+      length: SNAKE_LENGTH,
+      occupiedBlocks: []
+    },
     moveInterval = null;
 
 const initBoard = () => {
@@ -27,7 +29,14 @@ const initBoard = () => {
 }
 
 const initSnake = () => {
-  setSnakePosition(STARTING_POSITION.x, STARTING_POSITION.y);
+  let {
+    x,
+    y,
+  } = Object.assign({}, STARTING_POSITION);
+
+  snake.head.x = x;
+  snake.head.y = y;
+  snake.occupiedBlocks[`${x}-${y}`] = {x, y};
 }
 
 const initApple = () => {
@@ -85,78 +94,52 @@ const setDirection = (x, y) => {
     return;
   }
 
-  direction = {
-    x,
-    y
-  };
+  direction.x = x;
+  direction.y = y;
+}
+
+const removeSnakeTail = () => {
+  let {
+      occupiedBlocks
+    } = snake,
+    snakeTailId = Object.keys(occupiedBlocks)[0],
+    snakeEndPosition = occupiedBlocks[snakeTailId],
+    snakeEnd = board.children[snakeEndPosition.x].children[snakeEndPosition.y];
+
+  snakeEnd.classList.remove(SNAKE_CLASS);
+
+  delete occupiedBlocks[snakeTailId];
 }
 
 const setSnakePosition = (x, y) => {
   let head,
       snakeHitsSides = x === BOARD_SIZE || y === BOARD_SIZE || x < 0 || y < 0,
-      blockHasSnake,
+      blockHasSnake = typeof snake.occupiedBlocks[`${x}-${y}`] !== 'undefined',
       blockHasApple;
 
-  if (snakeHitsSides) {
+  if (snakeHitsSides || blockHasSnake) {
     setGameOver();
     return;
   }
 
   head = board.children[x].children[y];
-
-  blockHasSnake = head.getAttribute(SNAKE_LENGTH_ATTRIBUTE) > 0;
   blockHasApple = head.getAttribute(APPLE_ATTRIBUTE) === 'true';
 
-  if (blockHasSnake) {
-    setGameOver();
-    return;
-  }
-
   if (blockHasApple) {
-    increaseSnakeCounts();
     removeApple(head);
     setApple();
-    snakeLength++;
+  } else {
+    removeSnakeTail();
   }
 
   head.classList.add(SNAKE_CLASS);
-  head.setAttribute(SNAKE_LENGTH_ATTRIBUTE, snakeLength);
 
-  snakePosition = {
-    x,
-    y
-  };
-}
-
-const changeSnakeCounts = count => {
-  let blockArr = [...board.getElementsByClassName('block')];
-
-  blockArr = blockArr.filter(block => block.getAttribute(SNAKE_LENGTH_ATTRIBUTE) > 0);
-
-  blockArr.forEach(block => {
-    let snakeCount = parseInt(block.getAttribute(SNAKE_LENGTH_ATTRIBUTE));
-
-    block.setAttribute(SNAKE_LENGTH_ATTRIBUTE, snakeCount + count);
-
-    snakeCount = block.getAttribute(SNAKE_LENGTH_ATTRIBUTE);
-
-    if (snakeCount < 1) {
-      block.classList.remove(SNAKE_CLASS);
-    }
-  });
-}
-
-const reduceSnakeCounts = () => {
-  changeSnakeCounts(-1);
-}
-
-const increaseSnakeCounts = () => {
-  changeSnakeCounts(1);
+  snake.head = {x, y}
+  snake.occupiedBlocks[`${x}-${y}`] = {x, y};
 }
 
 const moveSnake = () => {
-  reduceSnakeCounts();
-  setSnakePosition(snakePosition.x + direction.x, snakePosition.y + direction.y);
+  setSnakePosition(snake.head.x + direction.x, snake.head.y + direction.y);
 }
 
 const setGameOver = () => {
